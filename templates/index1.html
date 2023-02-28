@@ -43,6 +43,16 @@
         </div>
         </div>
     </section>
+    <h3>Developer login</h3>
+      {% block content %}
+      {% with messages = get_flashed_messages()%}
+        {% if messages %}
+          {% for message in messages %}
+          <p style="background-color:yellow; text-align: center;">{{message}}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% endblock %}
     <section id="fform">
       <h3>Developer login</h3>
             
