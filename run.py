@@ -4,8 +4,6 @@ from datetime import datetime
 import os
 import openpyxl
 
-
-dir_path = os.path.dirname(os.path.realpath(__file__))
 app = Flask(__name__)
 app.config['SECRET_KEY']='secret'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
