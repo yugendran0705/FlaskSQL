@@ -1,4 +1,4 @@
-from flask import Flask,render_template, request, flash
+from flask import Flask,render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
@@ -49,6 +49,10 @@ def developer():
         linkedin_link = request.form.get('llink')
         experience = request.form.get('experience')
 
+        dev=Developer.query.filter_by(phone_number=phone_number).first()
+        if dev:
+            return redirect(url_for("developer"))
+
         with app.app_context():
             new_dev = Developer(name=name, email=email, phone_number=phone_number, domain=domain, github_link=github_link, linkedin_link=linkedin_link, experience=experience)
             db.session.add(new_dev)
@@ -69,6 +73,10 @@ def client():
         phone_number = request.form.get('number')
 
         client=Client.query.filter_by(phone_number=phone_number).first()
+        if client:
+            flash('Phone number already exists')
+            return redirect(url_for("client"))
+        
 
         with app.app_context():
             new_client = Client(name=name, email=email, phone_number=phone_number)
