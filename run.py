@@ -1,4 +1,4 @@
-from flask import Flask,render_template, request, flash, redirect, url_for
+from flask import Flask,render_template, request, flash, redirect, url_for, session, logging
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
@@ -57,11 +57,6 @@ class LoginForm(FlaskForm):
     password = StringField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
-    def validate_username(self, username):
-        dev = Developer.query.filter_by(username=username.data).first()
-        if not dev:
-            raise ValidationError('That username is not registered. Please register first.')
-        
 dir_path = os.path.dirname(os.path.realpath(__file__))
 app = Flask(__name__)
 app.config['SECRET_KEY']='secret'
@@ -145,20 +140,39 @@ def client():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form=LoginForm()
+
     if form.validate_on_submit():
         dev = Developer.query.filter_by(username=form.username.data).first()
         client = Client.query.filter_by(username=form.username.data).first()
-        password_dev = Developer.query.filter_by(password=form.password.data).first()
+        password_dev = None
+        password_client = None
+        if dev:
+            print('dev found')
+            password_dev = dev.password
+        if client:
+            print('client found')
+            password_client = client.password
         if dev is None and client is None:
             flash('That username is not registered. Please register first.')
             return redirect(url_for('home'))
-        if ((dev and bcrypt.check_password_hash(password_dev, form.password.data))|(client and bcrypt.check_password_hash(password_dev, form.password.data))):
-            flash('You have been logged in!', 'success')
-            return redirect(url_for('home'))
+        if dev:
+            if bcrypt.check_password_hash(password_dev, form.password.data):
+                session['name'] = str(dev.name)
+                flash('You have been logged in!', 'success')
+                return redirect(url_for('user'))
+        elif client:
+            if bcrypt.check_password_hash(password_client, form.password.data):
+                session['name'] = str(client.name)
+                flash('You have been logged in!', 'success')
+                return redirect(url_for('user'))
         else:
             flash('Login Unsuccessful. Please check username and password', 'danger')
+
     return render_template('login.html',template_folder='templates',form=form)
 
+@app.route('/user')
+def user():
+    return render_template('user.html',template_folder='templates')
 
 if __name__ == '__main__':
     app.run()
