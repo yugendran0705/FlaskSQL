@@ -1,7 +1,18 @@
-from flaskpage import db
+from flaskpage import db,login_manager
 from datetime import datetime
+from flask_login import UserMixin
 
-class Developer(db.Model):
+
+@login_manager.user_loader
+def load_user(username):
+    a=Developer.query.filter_by(username=username).first()
+    if a:
+        return a
+    else:
+        return Client.query.filter_by(username=username).first()
+    
+
+class Developer(db.Model,UserMixin):
     name=db.Column(db.String(100),nullable=False)
     email=db.Column(db.String(100),nullable=False)
     username=db.Column(db.String(100),nullable=False,primary_key=True)
@@ -16,8 +27,11 @@ class Developer(db.Model):
 
     def __repr__(self):
         return f"Developer('{self.name}', '{self.email}', '{self.username}', '{self.phone_number}', '{self.date_created}')"
-
-class Client(db.Model):
+    
+    def get_id(self):
+        return (self.username)
+    
+class Client(db.Model,UserMixin):
     name=db.Column(db.String(100),nullable=False)
     email=db.Column(db.String(100),nullable=False)
     username=db.Column(db.String(60),nullable=False,primary_key=True)
@@ -28,8 +42,11 @@ class Client(db.Model):
 
     def __repr__(self):
         return f"Client('{self.name}', '{self.email}', '{self.username}', '{self.phone_number}', '{self.date_created}')"
+    
+    def get_id(self):
+        return (self.username)
 
-class Post(db.Model):
+class Post(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
