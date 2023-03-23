@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, SubmitField, IntegerField, SelectField, BooleanField
+from wtforms import StringField, SubmitField, IntegerField, SelectField, BooleanField, PasswordField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_login import current_user
 from flaskpage.models import Developer, Client
@@ -15,8 +15,8 @@ class DeveloperForm(FlaskForm):
     github_link = StringField('Github Link', validators=[DataRequired()])
     linkedin_link = StringField('Linkedin Link', validators=[DataRequired()])
     experience = StringField('Experience', validators=[DataRequired()])
-    password= StringField('Password', validators=[DataRequired()])
-    confirm_password= StringField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    password= PasswordField('Password', validators=[DataRequired()])
+    confirm_password= PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Submit')
 
     def validate_phone_number(self, phone_number):
@@ -34,8 +34,8 @@ class ClientForm(FlaskForm):
     username=StringField('Username',validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone_number = StringField('Phone Number', validators=[DataRequired()])
-    password = StringField('Password', validators=[DataRequired()])
-    confirm_password= StringField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    password = PasswordField('Password', validators=[DataRequired()],)
+    confirm_password= PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Submit')
 
     def validate_phone_number(self, phone_number):
@@ -51,12 +51,12 @@ class ClientForm(FlaskForm):
         
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
-    password = StringField('Password', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')  
     submit = SubmitField('Login')
 
 class UpdateAccountForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired(), Length(min=2, max=30)])
+    username = StringField('Name', validators=[DataRequired(), Length(min=2, max=30)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone_number = StringField('Phone Number', validators=[DataRequired()])
     account_type = SelectField('Account Type', choices=['Developer','Client'], validators=[DataRequired()])
