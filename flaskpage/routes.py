@@ -1,28 +1,16 @@
-from flask import render_template, request, flash, redirect, url_for
-from flask_login import login_user, current_user, logout_user, login_required
+from flask import render_template, request, flash, redirect, url_for    
+from flask_login import login_user, current_user, logout_user, login_required, UserMixin
 from PIL import Image
 from flaskpage.forms import DeveloperForm, ClientForm, LoginForm, UpdateAccountForm
 from flaskpage.models import Developer, Client
-from flaskpage import app, db, bcrypt, login_manager
+from flaskpage import app, db, bcrypt
 import os
 import secrets
 
 
-
-@login_manager.user_loader
-def load_user(user_id):
-    if Developer.get(user_id):
-        return Developer.get(user_id)
-    else:
-        return Client.get(user_id)
-
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/home', methods=['GET', 'POST'])
-def home():
-    with app.app_context():
-        db.create_all()
-        db.session.commit()
-        
+def home():    
     return render_template('home.html',template_folder='templates')
 
 @app.route('/developer', methods=['GET', 'POST'])
@@ -72,6 +60,7 @@ def client():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    print(current_user)
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form=LoginForm()
@@ -93,12 +82,18 @@ def login():
             if bcrypt.check_password_hash(password_dev, form.password.data):
                 login_user(dev, remember=form.remember.data)
                 flash('You have been logged in!', 'success')
-                return redirect(url_for('user'))
+                return redirect(url_for('accountdetails'))
         elif client:
             if bcrypt.check_password_hash(password_client, form.password.data):
-                login_user(client, remember=form.remember.data)
+                login_user(client, remember=form.remember.data,force=True)
+                print(login_user(client, remember=form.remember.data,force=True))
+                print(current_user)
                 flash('You have been logged in!', 'success')
-                return redirect(url_for('user'))
+                return redirect(url_for('home'))
+            else:
+                flash('Login Unsuccessful. Please check username and password', 'danger')
+                return redirect(url_for('login'))
+
         else:
             flash('Login Unsuccessful. Please check username and password', 'danger')
 
@@ -107,6 +102,7 @@ def login():
 @app.route('/logout')
 def logout():
     logout_user()
+    flash('Logged out Successfully','success')
     return redirect(url_for('home'))
 
 def save_picture(form_picture):
@@ -121,9 +117,8 @@ def save_picture(form_picture):
 
     return picture_fn
 
-@app.route('/account')
-@login_required
-def account():
+@app.route('/accountdetails', methods=['GET', 'POST'])
+def accountdetails():
     form=UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
@@ -133,10 +128,10 @@ def account():
         current_user.email = form.email.data
         db.session.commit()
         flash('Your account has been updated!', 'success')
-        return redirect(url_for('account'))
+        return redirect(url_for('accountdetails'))
     
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
-    return render_template('account.html',template_folder='templates')
+    return render_template('accountdetails.html',template_folder='templates', title='Account', image_file=image_file, form=form)
